@@ -42,24 +42,27 @@ def entity_docs(index: SearchIndex) -> dict[str, set]:
 
 # ------------------------------------------------------------------ tool bodies
 def _entity_lookup(ctx: RunContext, a, index: SearchIndex) -> list[dict]:
-    terms = [t.lower().strip() for t in a.terms if t.strip()]
+    raw_terms = [t.strip() for t in a.terms if t.strip()]
+    terms = [t.lower() for t in raw_terms]
     edocs = entity_docs(index)
     out = []
     for e in _entity_table():
         visible = edocs.get(e["entity_id"], set()) & ctx.allowed        # never reveal initiatives the user can't see
         if not visible:
             continue
-        matched = []
+        matched, named = [], []
         for term in terms:
             for topic in e["topics"]:
                 if re.search(rf"\b{re.escape(topic.lower())}\b", term) or (len(term) > 3 and re.search(rf"\b{re.escape(term)}\b", topic.lower())):
                     matched.append(topic)
+        for raw in raw_terms:                                          # aliases match on the ORIGINAL text (NBA is case-sensitive)
             for al in e["aliases"]:
-                if alias_regex(al).search(term):
-                    matched.append(al)
-        if matched:
+                if alias_regex(al).search(raw):
+                    named.append(al)
+        if matched or named:
             out.append({"entity_id": e["entity_id"], "name": e["canonical_name"], "aliases": e["aliases"],
-                        "owner_team": e["owner_team"], "matched_on": sorted(set(matched))})
+                        "owner_team": e["owner_team"], "matched_on": sorted(set(matched + named)),
+                        "named": bool(named)})
     return out
 
 

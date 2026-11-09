@@ -69,9 +69,14 @@ def run_agent(ctx: RunContext) -> AgentResult:
         t0 = time.perf_counter()
         r = call_tool(ctx, "entity_lookup", {"terms": [ctx.question, *topics]})
         entities = {e["entity_id"]: e for e in (r.data or [])} if r.status == "ok" else {}
+        named = {k: v for k, v in entities.items() if v.get("named")}
+        narrowed = bool(named) and len(named) < len(entities)
+        if named:                                     # the question names specific initiatives -> stay on them
+            entities = named
         _rec(ctx, "act", "entity_lookup", "Find known initiatives that match the question", {"terms": topics},
              r.status, f"{len(entities)} candidate initiatives" + (": " + ", ".join(e["name"] for e in entities.values())
-                                                                  if entities else ""), t0)
+                                                                  if entities else "")
+             + (" (question names them explicitly, so broader topic matches were set aside)" if narrowed else ""), t0)
         if not entities:
             return AgentResult("abstained", NO_ACCESS_MSG)
 

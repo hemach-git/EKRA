@@ -30,7 +30,7 @@ def tokenize(text: str) -> list[str]:
     for t in _TOK.findall(text.lower()):
         if t in _STOP:
             continue
-        for suf in ("ations", "ation", "izing", "ized", "ing", "ed", "es", "s"):
+        for suf in ("izations", "ization", "izing", "ized", "ize", "ations", "ation", "ing", "ed", "es", "s"):
             if len(t) > len(suf) + 3 and t.endswith(suf):
                 t = t[: -len(suf)]
                 break

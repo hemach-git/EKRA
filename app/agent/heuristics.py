@@ -65,18 +65,22 @@ _SIGNAL = re.compile(r"\b(goal|target|metric|risk|decid|agreed|rolled back|rollb
                      r"launched|shipped|paused|cancel|reached|expands?|complete|started|kicks? off)", re.I)
 
 
-def extract_claims(names: list[str], passages: list[dict], max_claims: int = 5) -> list[dict]:
-    claims, seen = [], set()
-    for p in passages:
+def extract_claims(names: list[str], passages: list[dict], max_claims: int = 6) -> list[dict]:
+    """Rules-based extraction: best sentence per passage first (so every source is represented), then the next best."""
+    firsts, seconds, seen = [], [], set()
+    for pi, p in enumerate(passages):
         cands = []
         for i, s in enumerate(scope_sentences(names, p)):
             if len(s.split()) < 5 or s.lower().startswith("status:"):
                 continue
             score = (2 if re.search(r"\d", s) else 0) + (1 if _SIGNAL.search(s) else 0)
             cands.append((-score, i, s))
-        for _, _, s in sorted(cands)[:2]:
+        for rank, (neg, _, s) in enumerate(sorted(cands)[:2]):
             key = re.sub(r"\W+", " ", s.lower()).strip()
-            if key not in seen:
-                seen.add(key)
-                claims.append({"text": s[:300], "citations": [p["cid"]]})
-    return claims[:max_claims]
+            if key in seen:
+                continue
+            seen.add(key)
+            (firsts if rank == 0 else seconds).append((neg, pi, {"text": s[:300], "citations": [p["cid"]]}))
+    chosen = sorted(firsts)[:max_claims]
+    chosen += sorted(seconds)[: max(0, max_claims - len(chosen))]
+    return [c for _, _, c in sorted(chosen, key=lambda t: t[1])]
