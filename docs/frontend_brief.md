@@ -2,7 +2,7 @@ You are building the **Streamlit frontend only** for: **EKRA Research Assistant*
 
 **Repo/folder:** `C:\Users\Chepuri\agentic-research-assistant`. **Branch:** same folder - touch only frontend files, **do not commit**; the main session commits. Use the venv: `.venv\Scripts\python -m streamlit ...`.
 
-**You own:** `app/main.py`, `app/pages/*`, `app/ui/*`. **Do not edit** `app/services/*`, `app/core/*`, `app/agent/*`, `app/tools/*`, `app/retrieval/*`, `app/llm/*`, `app/guardrails/*`, `app/data/*`, `tests/*`, `evals/*`, `docs/*` (except nothing).
+**You own:** `app/main.py`, `app/views/*`, `app/ui/*`. **Do not edit** `app/services/*`, `app/core/*`, `app/agent/*`, `app/tools/*`, `app/retrieval/*`, `app/llm/*`, `app/guardrails/*`, `app/data/*`, `tests/*`, `evals/*`, `docs/*` (except nothing).
 
 **Interface contract (call these, don't reimplement):** all shapes are Pydantic models in `app/core/models.py` (read it first).
 ```python

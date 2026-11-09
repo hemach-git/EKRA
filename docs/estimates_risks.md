@@ -8,7 +8,7 @@
 | Skeleton: config, models, DB, synthetic corpus, data register | main | 20 | not timed | Done |
 | Retriever with ACL, tools, LLM providers | main | 25 | not timed | Done |
 | Agent loop, synthesizer, verifier, research service | main | 30 | not timed | Done |
-| Frontend (Streamlit pages) | frontend | 30 | Separate session | See README |
+| Frontend (Streamlit pages) | frontend | 30 | Separate session | Done; checked in Chrome (all 5 routes, Ask flow, no-access flow) |
 | Guardrails, audit, logging, analytics, diagnostics | main | 15 | not timed | Done |
 | Tests and evals (run and verified) | main | 15 | not timed | Done |
 | README, scope, risk docs, diagrams, docx, PPTX, GitHub push | main | 15 | not timed | Done |
@@ -19,10 +19,10 @@ Actual time was not tracked with a stopwatch, so it is left as "not timed" rathe
 
 | ID | Risk | Likelihood | Impact | Mitigation | Owner | Status |
 |---|---|---|---|---|---|---|
-| R1 | Permission leak through a summary | L | H | ACL pre-filter, live re-check before delivery, deny by default, leak check in every eval (0 leaks so far) | Backend | Mitigated |
+| R1 | Permission leak through a summary | L | H | ACL pre-filter, live re-check before delivery, deny by default, leak check in every eval (0 leaks in both the 30-question mock run and the 30-question real-model run) | Backend | Mitigated |
 | R2 | Local model returns invalid JSON or invents facts | M | H | Schema validation, one retry, rules-based fallback, grounding check drops invented numbers and unsupported claims | Backend | Mitigated |
 | R3 | Prompt injection in documents | M | H | Instruction-like text removed before prompting; read-only tools; security note shown | Backend | Mitigated |
-| R4 | Local model too slow for demo | M | M | Parallel extraction, fast model for extraction, mock provider fallback, budgets | Backend | Open (about 2 min per full query) |
+| R4 | Local model too slow for demo | M | M | Parallel extraction, fast model for extraction, mock provider fallback, budgets | Backend | Open (measured: about 103 s per enumeration question, about 32 s per single-initiative question) |
 | R5 | Low recall on initiatives missing from the entity table | M | M | Report counts unmatched documents; coverage check; roadmap item: automatic entity extraction | Backend | Open |
 | R6 | Rule-based status misses phrasing in real documents | H | M | Statuses cite their source; roadmap item: trained classifier plus human review | Backend | Open |
 | R7 | Synthetic corpus gives a false sense of production accuracy | M | M | Label synthetic everywhere; mock eval described as wiring check; pilot on real data before claims | Product | Open |

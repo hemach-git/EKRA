@@ -78,7 +78,22 @@ Details: [docs/architecture.md](docs/architecture.md) (as built) and [docs/desig
 
 The golden set ([evals/golden.jsonl](evals/golden.jsonl)) has 30 questions: 10 positive, 6 negative, 10 edge (time-window trap, prompt injection, stale ACL, superseded draft, keyword near-misses, over-long input, alias lookup, status conflict) and 4 permission tests. Every answer is also checked for global invariants: no uncited claim, no dangling citation, and **no document outside the asker's allow-list retrieved or cited**.
 
-RESULTS_PLACEHOLDER
+### Results (measured on 2026-11-09; full output in `evals/results/`)
+
+| Run | Passed | Permission leaks | Citation validity | Avg time per question | Tokens |
+|---|---|---|---|---|---|
+| **Real local models** (`llama3:8b` + `gpt-oss:20b`) | **30 / 30** | **0** | 100% (467 citations checked) | 38 s (enumeration questions about 103 s, single-initiative about 32 s, "no sources" answers under 4 s) | 82,840 |
+| Mock provider (offline wiring check) | 30 / 30 | 0 | 100% (521 citations checked) | under 0.1 s | 63,746 |
+| pytest | **65 passed**, 0 failed | n/a | n/a | about 2 s | n/a |
+
+Read these numbers with care:
+
+- **The golden set was also used to find and fix bugs.** An earlier real-model run passed 8 of 9 sampled questions; the failure exposed three genuine defects (a status wrongly credited to a second initiative named in the same sentence, document coverage judged per document instead of per passage, and claim extraction ignoring the user's question). They were fixed and the full set re-run. A 100% score on a set used for development is **not** evidence of the same accuracy on new questions or real documents.
+- **The mock result checks wiring only.** The mock's heuristics were written alongside the golden set. It shows retrieval, permissions, verification and schemas work, not that a language model is accurate.
+- **One real-model run used a fallback.** On P02 the model-written summary failed the number check (it contained a figure not in the findings), so the safe template summary was shown instead. The run still passed; the fallback is logged in the run's `degraded` list.
+- Latency is for one local machine with a 20B-parameter model and varies with load.
+- Results use a fixed reference date (2026-11-09) so "last 2 years" is repeatable.
+
 
 ## Project layout
 

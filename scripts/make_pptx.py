@@ -95,11 +95,13 @@ def main():
                    f"{mock['acl_leaks']} permission leaks.")
     if real:
         res.append(f"Real local AI ({real['models']['fast']} + {real['models']['main']}): {real['passed']} of "
-                   f"{real['total']} sampled questions passed, {real['acl_leaks']} permission leaks, "
+                   f"{real['total']} test questions passed, {real['acl_leaks']} permission leaks, "
                    f"average {real['avg_latency_ms'] // 1000} seconds per question.")
     res += [tests_line() + ".",
             "Example question: 9 initiatives found, status history and 1 conflicting report flagged.",
-            "All data is synthetic (made up). The mock result checks the plumbing, not AI quality."]
+            "All data is synthetic (made up). The mock result checks the plumbing, not AI quality.",
+            "These questions were also used to find and fix bugs, so this is a development check, "
+            "not proof of the same accuracy on new questions or real documents."]
     add_slide(prs, "4. Demo results", res, 18)
     add_slide(prs, "5. Safety and trust", [
         "Permissions are checked before search and again before the answer is shown.",
