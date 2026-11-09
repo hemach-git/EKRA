@@ -93,7 +93,7 @@ def main():
             body = lines[i + 1:j]
             if lang == "mermaid":
                 diagram += 1
-                add_picture(doc, IMG / f"diagram_{diagram}.png")
+                add_picture(doc, IMG / f"{MD.stem}_{diagram}.png")
             else:
                 p = doc.add_paragraph()
                 r = p.add_run("\n".join(body))

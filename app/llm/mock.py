@@ -29,7 +29,8 @@ class MockProvider(LLMProvider):
         if task == "plan":
             out = {"intent": payload.get("intent", "enumeration"), "sub_queries": payload.get("default_sub_queries", [])}
         elif task == "extract":
-            out = {"claims": heuristics.extract_claims(payload["names"], payload["passages"])}
+            out = {"claims": heuristics.extract_claims(payload["names"], payload["passages"],
+                                                       question=payload.get("question", ""))}
         elif task == "summarize":
             out = {"summary": payload["template_summary"]}
         else:

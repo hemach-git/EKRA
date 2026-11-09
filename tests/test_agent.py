@@ -246,3 +246,21 @@ def test_ollama_provider_parses_response_and_retries(monkeypatch):
     monkeypatch.setattr("time.sleep", lambda s: None)
     r = OllamaProvider().generate("plan", "s", "u")
     assert r.text == '{"ok": 1}' and r.prompt_tokens == 7 and calls["n"] == 2
+
+
+def test_status_is_not_attributed_to_other_initiatives_named_in_the_same_sentence():
+    """'UVec v1 is in progress; consumers are Project Compass and Project Lantern' is about UVec only."""
+    from app.agent import heuristics
+    p = {"text": "Unified User Vectors (UVec) v1 is in progress; first consumers are Project Compass and "
+                 "Project Lantern.", "single_entity": False, "cid": "s1", "date": "2025-04-02",
+         "other_aliases": ["Unified User Vectors", "UVec"]}
+    assert heuristics.status_observations(["Project Compass", "Compass"], [p]) == []
+    assert [o["status"] for o in heuristics.status_observations(["UVec", "Unified User Vectors"], [
+        {**p, "other_aliases": ["Project Compass", "Project Lantern"]}])] == ["active"]
+
+
+def test_compass_status_history_includes_the_incident_that_paused_it():
+    res = research.run_research(ResearchRequest(question=EXAMPLE, user_id="alice", source="eval"))
+    f = next(x for x in res.report.findings if x.initiative == "Home Feed Ranking v2")
+    assert [h["status"] for h in f.status_history] == ["active", "shipped", "paused"]
+    assert f.status_history[-1]["source"] == "Incident Report: Compass Rollback"

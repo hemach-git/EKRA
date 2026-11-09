@@ -1,0 +1,180 @@
+{
+  "summary": {
+    "timestamp": "2026-11-09T00:48:16",
+    "provider": "ollama",
+    "models": {
+      "fast": "llama3:8b",
+      "main": "gpt-oss:20b"
+    },
+    "reference_date": "2026-11-09",
+    "total": 9,
+    "passed": 8,
+    "pass_rate": 0.889,
+    "acl_leaks": 0,
+    "citation_validity": 1.0,
+    "citations_checked": 175,
+    "by_category": {
+      "positive": {
+        "passed": 2,
+        "total": 3
+      },
+      "negative": {
+        "passed": 2,
+        "total": 2
+      },
+      "edge": {
+        "passed": 3,
+        "total": 3
+      },
+      "acl": {
+        "passed": 1,
+        "total": 1
+      }
+    },
+    "avg_latency_ms": 39374,
+    "total_tokens": 27918,
+    "note": "Real local LLM run (Ollama). Statuses are rules-based; claims/summary come from the model and are verified.",
+    "p01_enumeration": {
+      "found_all_expected": false
+    }
+  },
+  "items": [
+    {
+      "id": "P01",
+      "category": "positive",
+      "user": "alice",
+      "passed": false,
+      "fails": [
+        "missing citation to compass-incident"
+      ],
+      "status": "ok",
+      "latency_ms": 82915,
+      "steps": 10,
+      "replans": 1,
+      "tokens": 7444,
+      "n_findings": 9,
+      "degraded": [],
+      "question": "Summarize all company initiatives related to personalization and recommendation systems fr"
+    },
+    {
+      "id": "P03",
+      "category": "positive",
+      "user": "alice",
+      "passed": true,
+      "fails": [],
+      "status": "ok",
+      "latency_ms": 24948,
+      "steps": 10,
+      "replans": 1,
+      "tokens": 1372,
+      "n_findings": 1,
+      "degraded": [],
+      "question": "Did we ever try two-tower retrieval for the home feed?"
+    },
+    {
+      "id": "P08",
+      "category": "positive",
+      "user": "alice",
+      "passed": true,
+      "fails": [],
+      "status": "ok",
+      "latency_ms": 24207,
+      "steps": 8,
+      "replans": 0,
+      "tokens": 1238,
+      "n_findings": 1,
+      "degraded": [],
+      "question": "What happened with Fresh Start?"
+    },
+    {
+      "id": "N01",
+      "category": "negative",
+      "user": "alice",
+      "passed": true,
+      "fails": [],
+      "status": "abstained",
+      "latency_ms": 4149,
+      "steps": 2,
+      "replans": 0,
+      "tokens": 191,
+      "n_findings": 0,
+      "degraded": [],
+      "question": "What initiatives are about quantum teleportation?"
+    },
+    {
+      "id": "N06",
+      "category": "negative",
+      "user": "bob",
+      "passed": true,
+      "fails": [],
+      "status": "abstained",
+      "latency_ms": 3347,
+      "steps": 2,
+      "replans": 0,
+      "tokens": 186,
+      "n_findings": 0,
+      "degraded": [],
+      "question": "What is the status of Project Lighthouse?"
+    },
+    {
+      "id": "E03",
+      "category": "edge",
+      "user": "alice",
+      "passed": true,
+      "fails": [],
+      "status": "ok",
+      "latency_ms": 83477,
+      "steps": 10,
+      "replans": 1,
+      "tokens": 7454,
+      "n_findings": 9,
+      "degraded": [],
+      "question": "Summarize all company initiatives related to personalization and recommendation systems fr"
+    },
+    {
+      "id": "E09",
+      "category": "edge",
+      "user": "alice",
+      "passed": true,
+      "fails": [],
+      "status": "ok",
+      "latency_ms": 24352,
+      "steps": 10,
+      "replans": 1,
+      "tokens": 1303,
+      "n_findings": 1,
+      "degraded": [],
+      "question": "Tell me about RecSys v2."
+    },
+    {
+      "id": "E10",
+      "category": "edge",
+      "user": "alice",
+      "passed": true,
+      "fails": [],
+      "status": "ok",
+      "latency_ms": 24967,
+      "steps": 8,
+      "replans": 0,
+      "tokens": 1313,
+      "n_findings": 1,
+      "degraded": [],
+      "question": "What is the status of Project Lantern?"
+    },
+    {
+      "id": "A02",
+      "category": "acl",
+      "user": "bob",
+      "passed": true,
+      "fails": [],
+      "status": "ok",
+      "latency_ms": 82005,
+      "steps": 10,
+      "replans": 1,
+      "tokens": 7417,
+      "n_findings": 9,
+      "degraded": [],
+      "question": "Summarize all company initiatives related to personalization and recommendation systems fr"
+    }
+  ]
+}

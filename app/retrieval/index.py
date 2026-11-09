@@ -159,6 +159,12 @@ class SearchIndex:
                                  score=round(float(fused[j]), 5), url=r["url"], injection_suspect=flagged or r["suspect"]))
         return hits, notes
 
+    def bm25_for(self, query: str, chunk_id: str) -> float:
+        """Keyword relevance of one chunk to a query (used to keep question-relevant evidence)."""
+        if not hasattr(self, "_by_id"):
+            self._by_id = {r["chunk_id"]: r for r in self.recs}
+        return self._bm25(tokenize(query), self._by_id[chunk_id])
+
     def chunks_of(self, doc_id: str) -> list[ChunkHit]:
         out = []
         for r in self.recs:

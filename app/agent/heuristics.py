@@ -43,18 +43,33 @@ def infer_status(scope_text: str) -> Optional[str]:
     return None
 
 
-def scope_sentences(names: list[str], passage: dict) -> list[str]:
-    sents = split_sentences(passage["text"])
-    if passage.get("single_entity"):
-        return sents
+def _first_pos(pats, sentence: str):
+    pos = [m.start() for p in pats if (m := p.search(sentence))]
+    return min(pos) if pos else None
+
+
+def scope_sentences(names: list[str], passage: dict, exclusive: bool = False) -> list[str]:
+    """Sentences about this initiative. With exclusive=True (status inference), a sentence that also names OTHER
+    initiatives is credited to the one named FIRST: "UVec v1 is in progress; consumers are Compass and Lantern" is
+    about UVec, so it says nothing about the status of Compass or Lantern."""
     pats = [alias_regex(n) for n in names]
-    return [s for s in sents if any(p.search(s) for p in pats)]
+    others = [alias_regex(a) for a in passage.get("other_aliases", [])] if exclusive else []
+    single = passage.get("single_entity")
+    out = []
+    for s in split_sentences(passage["text"]):
+        mine, theirs = _first_pos(pats, s), _first_pos(others, s)
+        if mine is None and not single:
+            continue                                   # multi-initiative passage: only sentences naming this one
+        if theirs is not None and (mine is None or theirs <= mine):
+            continue                                   # another initiative is the subject of this sentence
+        out.append(s)
+    return out
 
 
 def status_observations(names: list[str], passages: list[dict]) -> list[dict]:
     out = []
     for p in passages:
-        scope = " ".join(scope_sentences(names, p))
+        scope = " ".join(scope_sentences(names, p, exclusive=True))
         st = infer_status(scope) if scope else None
         if st:
             out.append({"status": st, "date": p["date"], "citation": p["cid"]})
@@ -65,15 +80,29 @@ _SIGNAL = re.compile(r"\b(goal|target|metric|risk|decid|agreed|rolled back|rollb
                      r"launched|shipped|paused|cancel|reached|expands?|complete|started|kicks? off)", re.I)
 
 
-def extract_claims(names: list[str], passages: list[dict], max_claims: int = 6) -> list[dict]:
-    """Rules-based extraction: best sentence per passage first (so every source is represented), then the next best."""
+_GENERIC = {"ever", "try", "tried", "company", "initiative", "initiatives", "summarize", "related", "systems",
+            "system", "years", "last", "status", "tell", "about", "what", "which", "give", "happened", "project",
+            "projects"}
+
+
+def _q_tokens(question: str) -> set:
+    from app.retrieval.index import tokenize
+    return {t for t in tokenize(question) if len(t) > 3 and t not in _GENERIC}
+
+
+def extract_claims(names: list[str], passages: list[dict], max_claims: int = 8, question: str = "") -> list[dict]:
+    """Rules-based extraction: best sentence per passage first (so every source is represented), then the next best.
+    Sentences that overlap with the user's question rank higher, so the claims answer what was actually asked."""
+    from app.retrieval.index import tokenize
     firsts, seconds, seen = [], [], set()
+    qt = _q_tokens(question) if question else set()
     for pi, p in enumerate(passages):
         cands = []
         for i, s in enumerate(scope_sentences(names, p)):
             if len(s.split()) < 5 or s.lower().startswith("status:"):
                 continue
-            score = (2 if re.search(r"\d", s) else 0) + (1 if _SIGNAL.search(s) else 0)
+            overlap = len(qt & set(tokenize(s)))
+            score = (2 if re.search(r"\d", s) else 0) + (1 if _SIGNAL.search(s) else 0) + 2 * min(overlap, 3)
             cands.append((-score, i, s))
         for rank, (neg, _, s) in enumerate(sorted(cands)[:2]):
             key = re.sub(r"\W+", " ", s.lower()).strip()

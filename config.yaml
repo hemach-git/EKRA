@@ -21,7 +21,7 @@ agent:
   max_seconds: 180
   max_tokens: 60000           # per-run token cap (prompt + completion)
   top_k: 8                    # chunks per search call
-  max_evidence_per_entity: 8
+  max_evidence_per_entity: 10
   max_fetch_per_replan: 6
   extract_workers: 3
 

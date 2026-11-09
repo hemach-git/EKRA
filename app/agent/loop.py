@@ -17,7 +17,7 @@ from app.agent.budget import BudgetExceeded
 from app.agent.context import RunContext
 from app.agent.planner import default_sub_queries, llm_sub_queries, topic_terms
 from app.agent.synthesizer import (conflicts_from_observations, coverage_gaps, extract_entity, make_summary,
-                                   select_evidence)
+                                   other_aliases, select_evidence)
 from app.agent.timewin import parse_window
 from app.agent.verifier import classify, grounding_score
 from app.core.config import get_config, today
@@ -133,7 +133,9 @@ def run_agent(ctx: RunContext) -> AgentResult:
             ctx.budget.start_step()
             ctx.budget.replans += 1
             t0 = time.perf_counter()
-            todo = list(dict.fromkeys(d for v in gaps.values() for d in v))[:cfg["max_fetch_per_replan"]]
+            ranked = [d for rank in range(max(len(v) for v in gaps.values()))      # round-robin: every initiative's
+                      for v in gaps.values() for d in v[rank:rank + 1]]            # top-priority document first
+            todo = list(dict.fromkeys(ranked))[:cfg["max_fetch_per_replan"]]
             results = call_many(ctx, [("fetch_document", {"doc_id": d}) for d in todo])
             _rec(ctx, "replan", "fetch_document", "Replan: read the key documents that search did not surface",
                  {"doc_ids": todo}, "ok" if any(x.status == "ok" for x in results) else "empty",
@@ -155,7 +157,8 @@ def run_agent(ctx: RunContext) -> AgentResult:
     for eid, hits in evidence.items():
         passages[eid] = [{"cid": f"s{i + 1}", "chunk_id": h.chunk_id, "doc_id": h.doc_id, "text": h.text,
                           "date": h.effective_date.isoformat(), "doc_type": h.doc_type, "title": h.title,
-                          "section": h.section, "single_entity": len(index.entities_of_chunk(h.chunk_id)) == 1}
+                          "section": h.section, "single_entity": len(index.entities_of_chunk(h.chunk_id)) == 1,
+                          "other_aliases": other_aliases(index, eid, h.chunk_id)}
                          for i, h in enumerate(hits)]
 
     def work(eid: str):
@@ -167,7 +170,7 @@ def run_agent(ctx: RunContext) -> AgentResult:
             names = [entities[eid]["name"], *entities[eid]["aliases"]]
             local = {p["cid"]: p["chunk_id"] for p in passages[eid]}
             return eid, [{"text": c["text"], "chunks": [local[i] for i in c["citations"]]}
-                         for c in heuristics.extract_claims(names, passages[eid])]
+                         for c in heuristics.extract_claims(names, passages[eid], question=ctx.question)]
 
     with ThreadPoolExecutor(max_workers=cfg["extract_workers"]) as ex:
         claims_by_ent = dict(ex.map(work, list(passages)))

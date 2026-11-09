@@ -37,7 +37,6 @@ JOURNEYS = [
 
 def _go(q: str) -> None:
     st.session_state["question"] = q
-    st.session_state["autorun"] = False
 
 
 jc = st.columns(3)

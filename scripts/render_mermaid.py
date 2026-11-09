@@ -36,8 +36,8 @@ def main():
             err = page.evaluate("document.body.dataset.err")
             if err:
                 raise SystemExit(f"diagram {i} failed: {err}")
-            target = OUT / f"diagram_{i}.png"
-            tmp = OUT / f"_tmp_{i}.png"
+            target = OUT / f"{MD.stem}_{i}.png"
+            tmp = OUT / f"_tmp_{MD.stem}_{i}.png"
             page.locator("#c").screenshot(path=str(tmp))
             os.replace(tmp, target)
             print(f"rendered {target}")
