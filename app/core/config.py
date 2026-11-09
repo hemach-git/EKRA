@@ -25,6 +25,9 @@ def get_config() -> dict[str, Any]:
     llm["ollama_url"] = os.getenv("OLLAMA_URL", llm["ollama_url"])
     llm["models"]["fast"] = os.getenv("LLM_MODEL_FAST", llm["models"]["fast"])
     llm["models"]["main"] = os.getenv("LLM_MODEL_MAIN", llm["models"]["main"])
+    for key, env in (("db", "EKRA_DB_PATH"), ("log_file", "EKRA_LOG_FILE")):   # e.g. a scratch DB for UI tests
+        if os.getenv(env):
+            cfg["paths"][key] = os.environ[env]
     ref = os.getenv("EKRA_REFERENCE_DATE", cfg.get("reference_date"))
     cfg["reference_date"] = str(ref) if ref else None
     return cfg
