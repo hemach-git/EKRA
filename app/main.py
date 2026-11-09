@@ -19,9 +19,9 @@ st.set_page_config(page_title="EKRA Research Assistant", page_icon="🔎", layou
                    initial_sidebar_state="expanded")
 inject_css()
 
-PAGES_DIR = Path(__file__).parent / "pages"
+PAGES_DIR = Path(__file__).parent / "views"   # NOT "pages": Streamlit auto-discovers a pages/ folder and breaks deep links
 pages = [
-    st.Page(PAGES_DIR / "home.py", title="Home", icon="🏠", default=True, url_path="home"),
+    st.Page(PAGES_DIR / "home.py", title="Home", icon="🏠", default=True),   # default page lives at "/"
     st.Page(PAGES_DIR / "ask.py", title="Ask & Report", icon="🔎", url_path="ask"),
     st.Page(PAGES_DIR / "review.py", title="Review & Feedback", icon="📝", url_path="review"),
     st.Page(PAGES_DIR / "analytics.py", title="Analytics", icon="📊", url_path="analytics"),
