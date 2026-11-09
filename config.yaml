@@ -1,0 +1,47 @@
+# EKRA - Enterprise Knowledge Research Assistant (prototype). All data is SYNTHETIC.
+app:
+  name: EKRA Research Assistant
+  version: 0.1.0
+
+llm:
+  provider: ollama            # ollama | mock   (env LLM_PROVIDER overrides)
+  ollama_url: http://localhost:11434
+  models:
+    fast: llama3:8b           # plan + per-initiative extraction
+    main: gpt-oss:20b         # final summary
+  embed_model: nomic-embed-text
+  timeout_s: 180
+  temperature: 0.0
+  max_output_tokens: 900
+
+agent:
+  max_steps: 12
+  max_replans: 3
+  max_seconds: 180
+  max_tokens: 60000           # per-run token cap (prompt + completion)
+  top_k: 8                    # chunks per search call
+  max_evidence_per_entity: 5
+  max_fetch_per_replan: 6
+  extract_workers: 3
+
+retrieval:
+  chunk_target_chars: 900
+  rrf_k: 60
+  acl_max_age_days: 30        # ACL older than this is treated as stale -> deny
+
+guardrails:
+  min_question_chars: 3
+  max_question_chars: 1000
+  grounding_min_overlap: 0.5  # claim kept as 'supported' above this
+  grounding_drop_below: 0.3   # claim dropped below this
+
+conflict:
+  window_days: 45
+
+paths:
+  db: data/ekra.db
+  log_file: logs/app.jsonl
+  eval_results: evals/results
+
+# Set to a fixed date (YYYY-MM-DD) to make relative time windows repeatable. null = today.
+reference_date: null
