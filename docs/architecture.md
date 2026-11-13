@@ -190,10 +190,13 @@ Additional tables not drawn: `audit_log` (who, what, when, model, request id), `
 | LLM output validated (JSON schema, retry once, rules-based fallback) | The assistant keeps working if the local model misbehaves |
 | Local Ollama by default; OpenAI not supported | Company data stays on the machine; no per-query cost |
 | One planner agent with parallel fan-out, not many agents | Simpler traces and fewer cascading errors |
+| Clear autonomy boundary: the model chooses search terms, tools, documents to read and when to replan; code owns dates, permissions, status, conflicts and number checks | The agent adapts to each question, while the decisions that must be exact stay auditable (design.md 2.3.5) |
 
 ## 6. Limitations of the prototype
 
 - Entity tags and aliases are **seeded by hand** (a stand-in for an extraction pipeline). Initiatives that are not in the entity table cannot be summarized; the report says how many matching documents belong to initiatives outside the topic.
 - Status rules cover the phrases in the synthetic corpus; real documents need broader patterns or a trained classifier.
 - SQLite plus in-process vectors suit ~50 documents, not millions.
+- Plans are built for list-all and single-initiative questions only. Timeline, comparison and "why" playbooks, reason extraction, clarifying questions and plan preview are designed (design.md 2.3.6, 2.8.1) but not built.
+- Relevance relies on hard filters, entity match and question-aware extraction; there is no cross-encoder reranker or calibrated score cutoff (design.md 2.5.1).
 - Demo identities replace SSO. There is no real connector, no async job queue and no long-term memory.

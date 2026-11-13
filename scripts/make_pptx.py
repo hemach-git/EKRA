@@ -113,9 +113,10 @@ def main():
     add_slide(prs, "6. Next steps", [
         "Limits today: made-up data, hand-tagged initiatives, rule-based statuses, one machine.",
         "Next: connect real wikis and drives, add company sign-in, find initiatives automatically.",
+        "Also next: handle timeline, comparison and \"why\" questions; ask when a question is unclear; test on new questions.",
         "Then: run a pilot with one team on real documents and measure time saved.",
         "Needed to go live: security review, data owner sign-off, hosting, a support owner.",
-    ], 19)
+    ], 17)
     out = ROOT / "docs" / "presentation.pptx"
     prs.save(out)
     print(f"saved {out} with {len(Presentation(out).slides)} slides")

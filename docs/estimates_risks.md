@@ -12,6 +12,7 @@
 | Guardrails, audit, logging, analytics, diagnostics | main | 15 | not timed | Done |
 | Tests and evals (run and verified) | main | 15 | not timed | Done |
 | README, scope, risk docs, diagrams, docx, PPTX, GitHub push | main | 15 | not timed | Done |
+| Design deep dive v2.0 (6-step framework, behaviour conformance check, [built] claims verified against code) | main | not time-boxed | not timed | Done (2026-11-12) |
 
 Actual time was not tracked with a stopwatch, so it is left as "not timed" rather than guessed. Task order and status are accurate.
 
@@ -29,3 +30,7 @@ Actual time was not tracked with a stopwatch, so it is left as "not timed" rathe
 | R8 | Stale ACL after permission changes | L | H | Deny when ACL older than 30 days or never synced; live re-check; event-driven sync in production | Backend | Mitigated in prototype |
 | R9 | Cost or runaway loops in production | L | M | Step, time, token and tool-call caps; loop detection; partial answer on cap | Backend | Mitigated |
 | R10 | SQLite and in-process index do not scale | H | M | Out of scope for the prototype; managed search and Postgres in the production design | Platform | Accepted |
+| R11 | 30/30 golden result overstates accuracy because the set was also used for debugging | H | M | Build a held-out set never used for fixes; online judges in production (design.md 5.4) | Quality | Open |
+| R12 | Timeline, comparison and "why" questions get the list-all plan, so answers may be poorly shaped | M | M | Intent playbooks designed (design.md 2.3.6); build and add golden items per intent | Backend | Open |
+| R13 | "Why was it stopped" answers lack an explicit reason | M | M | Add a cited `reason` field to extraction and the report (design.md 2.7.1, 2.8.1) | Backend | Open |
+| R14 | Ambiguous questions answered without asking | M | M | Clarifying question and plan preview (design.md 2.3.1, 2.3.2); time window always shown in the report | Backend | Open |

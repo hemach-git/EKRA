@@ -56,7 +56,7 @@ Employees spend hours searching wikis, decks, reports and meeting notes to answe
 
 ## 6. Architecture summary
 
-See [architecture.md](architecture.md) for the as-built diagrams and [design.md](design.md) for the production-scale design.
+See [architecture.md](architecture.md) for the as-built diagrams and [design.md](design.md) for the production-scale design (v2.0). Its section 0.2 checks each target behaviour (plan autonomously, retrieve relevant information, synthesize, structured cited response) against the design and the prototype evidence.
 
 ## 7. Data sources
 
@@ -68,6 +68,8 @@ All data is synthetic. See [data_sources.md](data_sources.md).
 - Local model latency: about 2 minutes for the full example query on this machine.
 - The mock provider's eval pass rate verifies pipeline wiring, not language-model accuracy.
 - Numbers in the design document (users, cost, latency) are illustrative.
+- Only list-all and single-initiative question types are built and tested. Timeline, comparison and "why" questions, reason extraction, clarifying questions and plan preview are designed but not built.
+- The golden set was also used for debugging; a held-out set is needed to measure accuracy on new questions.
 
 ## 9. Governance and human review points
 

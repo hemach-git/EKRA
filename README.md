@@ -53,7 +53,9 @@ flowchart LR
 4. **Synthesize:** per initiative, the model extracts cited claims. **Status (shipped, paused, cancelled, active) is derived by rules**, so it is auditable. Conflicts are detected when two sources disagree within 45 days.
 5. **Verify:** each claim must be supported by the passage it cites; claims with invented numbers or no support are dropped; document access is re-checked live before delivery.
 
-Details: [docs/architecture.md](docs/architecture.md) (as built) and [docs/design.md](docs/design.md) (production-scale design, trade-offs, failure modes, operations).
+Details: [docs/architecture.md](docs/architecture.md) (as built) and [docs/design.md](docs/design.md) (production-scale design deep dive, v2.0).
+
+**Design deep dive (v2.0, 2026-11-12).** The design follows a 6-step framework (Requirements, Main System Components, Trade-offs, Failure Modes, Observability and Feedback Loops, Productionization and Operations). It designs each target behaviour explicitly: autonomous planning, relevant retrieval, synthesis, and a structured, cited response. A conformance table (section 0.2) maps each behaviour to its design, the prototype evidence and what is still open. Every claim tagged **[built]** in the design was checked against the code.
 
 ## Safety, governance and observability
 
@@ -121,13 +123,16 @@ scripts/                            diagram rendering, docx and pptx generators
 - **Mock results check wiring, not AI quality.** The mock's heuristics were written alongside the golden set, so a high mock pass rate says the plumbing works, not that a language model is accurate.
 - Local-model latency: roughly 1 to 3 minutes for an enumeration question on the author's machine; single-initiative questions take under a minute.
 - SQLite plus an in-process index suits tens of documents, not millions. No SSO, real connectors, async jobs or long-term memory.
+- **Built for two question types.** The agent's plans are built and tested for list-all (enumeration) and single-initiative lookup questions. Timeline, comparison and "why was it stopped" playbooks are designed (design.md 2.3.6) but not built; reasons are not yet extracted as a separate field.
+- **No clarifying question or plan preview yet.** Ambiguous questions are answered with stated assumptions.
+- **The golden set doubled as a debugging set.** A held-out question set is needed before claiming accuracy on new questions.
 - Time-window phrases supported: last N units, last/this year, since/in a year, quarters, half-years, "between X and Y".
 
 ## Documents
 
 | Document | Purpose |
 |---|---|
-| [docs/design.md](docs/design.md) / [.docx](docs/design.docx) | Production-scale system design: requirements, components, trade-offs, failure modes, observability, operations |
+| [docs/design.md](docs/design.md) / [.docx](docs/design.docx) | Production-scale design deep dive (v2.0): behaviour conformance check, requirements, components (autonomy boundary, intent playbooks, relevance and sufficiency rules), 18 trade-offs, 20-item failure mode analysis, observability, feedback loops, SLOs, runbooks, cost, rollout |
 | [docs/architecture.md](docs/architecture.md) / [.docx](docs/architecture.docx) | As-built architecture with diagrams |
 | [docs/scope.md](docs/scope.md) / [.docx](docs/scope.docx) | Scope, requirements, acceptance criteria |
 | [docs/estimates_risks.md](docs/estimates_risks.md) / [.docx](docs/estimates_risks.docx) | Estimates and risk register |
