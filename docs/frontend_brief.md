@@ -1,6 +1,6 @@
 You are building the **Streamlit frontend only** for: **EKRA Research Assistant** - an agentic AI research assistant that answers complex questions over internal company knowledge (wikis, PRDs, roadmaps, meeting notes, reports) with a visible plan, permission-aware retrieval and a fully cited report. All data is **synthetic**.
 
-**Repo/folder:** `C:\Users\Chepuri\agentic-research-assistant`. **Branch:** same folder - touch only frontend files, **do not commit**; the main session commits. Use the venv: `.venv\Scripts\python -m streamlit ...`.
+**Repo/folder:** `C:\Users\Chepuri\AI-Products\Prototypes\EKRA`. **Branch:** same folder - touch only frontend files, **do not commit**; the main session commits. Use the venv: `.venv\Scripts\python -m streamlit ...`.
 
 **You own:** `app/main.py`, `app/views/*`, `app/ui/*`. **Do not edit** `app/services/*`, `app/core/*`, `app/agent/*`, `app/tools/*`, `app/retrieval/*`, `app/llm/*`, `app/guardrails/*`, `app/data/*`, `tests/*`, `evals/*`, `docs/*` (except nothing).
 
