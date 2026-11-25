@@ -17,10 +17,10 @@ The assistant resolves the time window, finds the 9 matching initiatives the use
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
 .venv\Scripts\python -m app.data.seed --reset          # builds data/ekra.db from the synthetic corpus
-.venv\Scripts\python -m streamlit run app/main.py --server.port 8503
+.venv\Scripts\python -m streamlit run app/main.py --server.port 8602
 ```
 
-Open http://localhost:8503 . Use any free port; the author's machine already had 8501 and 8502 in use.
+Open http://localhost:8602 . Use any free port; the author's machine already had other ports in use.
 
 **AI model:** the default provider is **Ollama running locally** (`llama3:8b` for planning and extraction, `gpt-oss:20b` for the summary, `nomic-embed-text` for embeddings). Pull them with `ollama pull <name>`.
 No API key is needed and no data leaves the machine. OpenAI and other cloud providers are intentionally **not** supported.

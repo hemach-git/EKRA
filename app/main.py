@@ -1,6 +1,6 @@
 """EKRA Research Assistant - Streamlit entrypoint.
 
-Run:  .venv\\Scripts\\python -m streamlit run app/main.py --server.port 8503
+Run:  .venv\\Scripts\\python -m streamlit run app/main.py --server.port 8602
 """
 from __future__ import annotations
 
