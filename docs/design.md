@@ -103,19 +103,33 @@ Knowledge about initiatives is scattered across six or more systems, written und
 
 ### 1.4 Non-functional requirements (illustrative)
 
-| Dimension | Target | Why this number |
-|---|---|---|
-| Users | 20k employees; 2k daily active | Typical mid-to-large enterprise |
-| Load | About 6k queries/day; 85% quick, 15% deep; peak about 1 QPS, up to about 30 concurrent deep runs | See 1.5 |
-| Corpus | About 5M documents, 60M chunks, 50k changed docs/day | Six sources, several years of history |
-| Latency, quick mode | First token < 3 s; p95 total < 20 s | Feels like search |
-| Latency, deep mode | Plan preview < 5 s; p95 report < 4 min, with progress events | Users accept minutes for a report that saves hours |
-| Freshness | Content indexed < 15 min after change; ACL change applied < 5 min | Status reports change weekly; revoked access must stop quickly |
-| Availability | 99.5% answer path; degrade to cited search results if LLMs fail | Internal tool, business hours critical |
-| Quality | Faithfulness ≥ 95%; citation validity ≥ 98%; enumeration recall ≥ 85%; ACL-leak rate = 0 | Trust bar for leadership use |
-| Cost | ≤ $0.05 quick, ≤ $0.60 deep, blended ≈ $0.13 per query | Fits budget in 1.2 |
-| Security | SSO; encryption at rest and in transit; zero-retention LLM contracts; full audit | Enterprise security review |
-| Data residency | Index, logs and LLM calls stay in region | Compliance |
+All targets are planning values to be confirmed in the pilot. Each one names how it will be verified, so that it can act as a release gate rather than an aspiration.
+
+**Workload assumed by these targets:** about 20k employees, 2k daily active users, about 6k queries/day (85% quick, 15% deep), corpus of about 5M documents / 60M chunks with about 50k changed documents/day. Derivation in 1.5.
+
+| ID | Category | Requirement and target | Verified by |
+|---|---|---|---|
+| NFR1 | Performance: quick mode | First token < 3 s; p95 total < 20 s | Load test; p95 dashboard (5.2) |
+| NFR2 | Performance: deep mode | Plan preview < 5 s; progress event at least every 10 s; p95 report < 4 min | Load test; job metrics |
+| NFR3 | Throughput and concurrency | Peak about 1 QPS and about 30 concurrent deep runs without breaching NFR1–NFR2 | Load test at 2× peak |
+| NFR4 | Scalability | Corpus growth to 2× (10M documents) and users to 2× without redesign; workers scale horizontally on queue depth | Capacity test on scaled index; autoscaling test |
+| NFR5 | Availability | 99.5% of runs succeed or degrade gracefully (business hours critical) | SLO dashboard; error budget (6.4) |
+| NFR6 | Resilience and graceful degradation | Any single dependency failure (reranker, one connector, one LLM provider) degrades the answer but never fails it; all-LLM outage → cited search results | Fault-injection tests per dependency (4.4, 4.5) |
+| NFR7 | Recoverability | Metadata/audit RPO 15 min, RTO 1 h; index rebuildable from raw store within 4 h; deep run resumes after worker restart | Quarterly restore and rebuild drill |
+| NFR8 | Freshness | Content searchable < 15 min after change; ACL changes enforced < 5 min; stale ACL → deny | Ingestion and ACL lag metrics per connector |
+| NFR9 | Security: access control | Permission-leak rate = **0**; pre-filter on every retrieval; live re-check before delivery; least-privilege read-only service identities | Permission golden tests; production canaries; pen test |
+| NFR10 | Security: input and content | Prompt-injection screening on questions and retrieved text; retrieved content never executed as instructions | Red-team suite in CI |
+| NFR11 | Privacy | PII masked in logs and traces; restricted collections opt-in; long-term memory opt-in with view and delete; deletion propagates within 24 h | Log scanning; deletion propagation test |
+| NFR12 | Compliance and data residency | Encryption at rest and in transit; region-pinned storage and model endpoints; zero-retention, no-training model terms | Security review; vendor contract check |
+| NFR13 | Auditability | Every run records who, question, docs retrieved and cited, model, config snapshot, cost, feedback; retained 1 year | Audit completeness check on sampled runs |
+| NFR14 | Answer quality | Faithfulness ≥ 95%; citation validity ≥ 98%; uncited claims = 0; enumeration recall ≥ 85%; correct abstention on negative items | Offline golden set + held-out set; online judges (5.4) |
+| NFR15 | Explainability | Every claim links to an openable source passage; status shows its deciding source; report states time window, scope searched, gaps and any degradation | Schema validation; UI review |
+| NFR16 | Cost efficiency | ≤ $0.05 per quick answer, ≤ $0.60 per deep report, blended ≈ $0.13/query; hard per-run caps | Per-run cost meter; daily spend vs forecast |
+| NFR17 | Observability | 100% of runs traced (plan steps, tool calls, model calls) with request IDs, tokens, latency, status | Trace completeness check |
+| NFR18 | Maintainability and change safety | Prompts, models, thresholds and budgets are versioned config; every change passes the eval gate; rollback < 15 min | CI gate; rollback drill |
+| NFR19 | Portability (no model lock-in) | Model provider swappable by config behind the LLM gateway; embedding model change via blue/green reindex | Run eval set on two providers |
+| NFR20 | Usability and accessibility | Answers readable without training; progress visible for long runs; WCAG 2.1 AA for the web UI | Usability test with 5 pilot users; accessibility audit |
+| NFR21 | Interoperability | Standard SSO (OIDC/SAML); directory groups via SCIM/Graph; documented HTTP API for bot and other clients | Integration tests |
 
 ### 1.5 Capacity estimates (illustrative, back of the envelope)
 
@@ -161,12 +175,47 @@ Knowledge about initiatives is scattered across six or more systems, written und
 
 Write actions in source systems; answering from the open web; personal email and chat; HR or legal collections unless explicitly opted in; numeric analytics over databases (that is a BI tool's job); fully automatic decisions.
 
-### 1.10 Assumptions
+### 1.10 Assumptions, constraints and dependencies
 
-- Source systems expose ACLs and change events; where they don't, nightly sync with stricter deny-by-default applies.
-- Entity and effective-date extraction are probabilistic; low-confidence cases are flagged, not hidden.
-- An enterprise LLM contract with zero retention exists, or local models are used (as in the prototype).
-- All numbers marked illustrative must be validated in a pilot.
+**Assumptions** (each is a bet; if it proves wrong, the design changes as stated)
+
+| ID | Category | Assumption | Impact if wrong | How and when validated |
+|---|---|---|---|---|
+| A1 | Users | Users are employees and contractors signed in through SSO; group membership reflects document access | Identity resolver and ACL model need redesign | Security review at kickoff |
+| A2 | Usage | About 6k queries/day, 85% quick and 15% deep | Capacity and cost estimates shift (1.5, 6.8) | Pilot usage logs |
+| A3 | Sources | Source systems expose document permissions through an API | Without ACL data a source cannot be indexed (deny by default) | Connector spike per source |
+| A4 | Sources | Most sources emit change events; the rest support nightly export | Freshness targets (NFR8) cannot be met for those sources | Connector spike per source |
+| A5 | Content | Documents carry enough date signals to extract an effective date | Time-window questions become less reliable | Measure extraction accuracy on a sample |
+| A6 | Content | Initiatives have recognizable names or code names and owner teams | Enumeration recall and deduplication drop | Entity extraction pilot on one source |
+| A7 | Content | Status language ("shipped", "paused", "descoped") is reasonably consistent | Rule-based status needs a classifier plus human review | Pilot on real status reports |
+| A8 | Models | A zero-retention enterprise model contract exists, or self-hosted models are acceptable | Model choice narrows; quality or cost targets may change | Procurement and legal check |
+| A9 | Models | Small models are good enough for classification and extraction | Cost rises if large models are needed everywhere | Extraction eval comparing model sizes |
+| A10 | Behaviour | Users accept minutes of waiting for deep reports if progress is shown | Must cut deep-mode scope or invest in speed | Pilot satisfaction survey |
+| A11 | Organization | Content owners will act on "outdated" feedback | Knowledge base quality stays flat | Pilot feedback-loop response rate |
+| A12 | Numbers | All figures marked illustrative are planning values | Targets and budgets are re-baselined | Pilot measurements |
+
+**Constraints** (fixed; the design must work within them)
+
+| ID | Constraint | Design consequence |
+|---|---|---|
+| C1 | Read-only: no writes to source systems | All tools read-only; write tools only with human approval in a later phase |
+| C2 | Data must not leave the approved region or be used for model training | Region-pinned stores and model endpoints; zero-retention terms or self-hosting |
+| C3 | Document-level permissions must be honored exactly | Pre-filter plus live re-check; deny by default |
+| C4 | HR, legal and other restricted collections excluded unless explicitly approved | Opt-in collection policy at ingestion |
+| C5 | Answers must be traceable to sources | Strict citation and verifier; abstain rather than guess |
+| C6 | Budget of roughly $25k/month model spend at full adoption (illustrative) | Model routing, caching, per-run caps |
+
+**Dependencies** (outside the team's control)
+
+| ID | Dependency | Needed for | Risk if late or unavailable |
+|---|---|---|---|
+| D1 | Identity provider and directory (SSO, group API) | Identity and ACL expansion | No permission-aware retrieval; blocks production |
+| D2 | Source-system APIs and service accounts | Connectors, ACL sync | Reduced coverage; source excluded |
+| D3 | Model provider contract or GPU capacity for self-hosting | All model calls | Blocks synthesis; search-only fallback |
+| D4 | Security and privacy review sign-off | Production launch | Launch delayed |
+| D5 | Data owners' approval per source | Indexing each source | Source excluded until approved |
+| D6 | Platform team: Kubernetes, search cluster, Postgres, Redis | Production deployment | MVP stays single-node |
+| D7 | Pilot team and domain experts for golden-set labels | Evaluation and calibration | Quality targets unverified |
 
 ---
 
@@ -1172,6 +1221,8 @@ When an error budget is spent, feature releases pause and the team works on reli
 | R10 | Adoption stalls | Medium | High | Slack integration, champions, time-saved reporting | Product |
 
 ### 6.13 Assumptions and limitations
+
+The full assumptions, constraints and dependencies register is in 1.10. Operating limitations:
 
 - Answers are only as good as the documents; the system reports gaps but cannot fill them.
 - Effective-date, entity and status extraction are probabilistic or rule-bound; low-confidence cases are flagged.
